@@ -85,3 +85,16 @@ func (c *Cache) AddElement(key string, value Value) {
 func (c *Cache) Length() int {
 	return c.lists.Len()
 }
+
+func (c *Cache) RmElememt(key string) (Value, bool) {
+	//var elem *list.Element
+	if elem, ok := c.reflect[key]; !ok {
+		return nil, false
+	} else {
+		kvalue := elem.Value.(*Entry)
+		c.lists.Remove(elem)
+		delete(c.reflect, key)
+		c.nowSize -= int64(len(key)) + int64(kvalue.value.Len())
+		return kvalue.value, true
+	}
+}
