@@ -1,4 +1,4 @@
-package mycache
+package group
 
 import (
 	"errors"
@@ -83,4 +83,12 @@ func (g *Group) FromLocal(key string) (Byte, error) {
 	value := Byte{data: Copy(bytes)}
 	g.mainCache.Add(key, value)
 	return value, nil
+}
+
+func GetFormGroupName(name string) *Group {
+	//map不是并发安全的
+	mutex.RLock()
+	g := groups[name]
+	mutex.RUnlock()
+	return g
 }

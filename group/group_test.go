@@ -1,13 +1,14 @@
-package mycache
+package group_test
 
 import (
+	"MyCache/group"
 	"errors"
 	"reflect"
 	"testing"
 )
 
 func TestCallBack(t *testing.T) {
-	var f CallBack = HelpFunc(func(key string) ([]byte, error) { return []byte("kk"), nil })
+	var f group.CallBack = group.HelpFunc(func(key string) ([]byte, error) { return []byte("kk"), nil })
 
 	var temp = []byte("kk")
 	if data, _ := f.Get("kk"); !reflect.DeepEqual(temp, data) {
@@ -21,7 +22,7 @@ func TestGroup(t *testing.T) {
 		"cs": "123",
 	}
 	count := make(map[string]int, 2)
-	g := New("mygroup", 100000000, HelpFunc(func(key string) ([]byte, error) {
+	g := group.New("mygroup", 100000000, group.HelpFunc(func(key string) ([]byte, error) {
 		if value, ok := m[key]; ok {
 			if _, OK := count[key]; !OK {
 				count[key] = 0

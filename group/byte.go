@@ -1,4 +1,4 @@
-package mycache
+package group
 
 type Byte struct { //缓存的值  byte 可以转很多
 	data []byte
@@ -10,6 +10,10 @@ func (b Byte) Len() int {
 
 func (b Byte) ToString() string {
 	return string(b.data)
+}
+
+func (b Byte) ToByte() []byte {
+	return b.Copy()
 }
 
 func (b Byte) Copy() []byte {

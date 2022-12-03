@@ -1,4 +1,4 @@
-package mycache
+package group
 
 import (
 	lru "MyCache/LRU"
