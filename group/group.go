@@ -1,9 +1,11 @@
 package group
 
 import (
+	singleflight "MyCache/singleFlight"
 	"errors"
 	"log"
 	"sync"
+	"time"
 )
 
 type CallBack interface {
@@ -21,7 +23,10 @@ type Group struct {
 	call_back CallBack //注册回调函数
 	mainCache Cache
 	route     *HTTP
+	flight    *singleflight.Group
 }
+
+var global_map = make(map[string]Byte)
 
 var (
 	mutex  sync.RWMutex
@@ -40,6 +45,7 @@ func New(name string, cap int64, call CallBack) *Group {
 		mainCache: Cache{
 			capacity: cap,
 		},
+		flight: &singleflight.Group{},
 	}
 	groups[name] = g
 	return g
@@ -80,15 +86,22 @@ func (g *Group) RegisterRoute(route *HTTP) {
 }
 
 func (g *Group) GetFromAnother(key string) (Byte, error) {
-	if g.route != nil {
-		if peer, err := g.route.Pick(key); err != nil { //获取对应的客户端
-			if bytes, err := peer.Get(g.name, key); err == nil {
-				return Byte{data: bytes}, nil
+	data, err := g.flight.Do(key, func() (interface{}, error) {
+		if g.route != nil {
+			if peer, err := g.route.Pick(key); err != nil { //获取对应的客户端
+				if bytes, err := peer.Get(g.name, key); err == nil {
+					return Byte{data: bytes}, nil
+				}
+				log.Println("远程节点不存在该数据")
 			}
-			log.Println("远程节点不存在该数据")
 		}
+		return g.FromLocal(key)
+	})
+	if err == nil {
+		return data.(Byte), err
 	}
-	return g.FromLocal(key)
+
+	return Byte{}, errors.New("找不到该数据")
 }
 
 func (g *Group) FromLocal(key string) (Byte, error) {
@@ -107,4 +120,23 @@ func GetFromGroupName(name string) *Group {
 	g := groups[name]
 	mutex.RUnlock()
 	return g
+}
+
+func (g *Group) Update(key string, value Byte) error {
+	mutex.Lock()
+	global_map[key] = value
+	mutex.Unlock()
+	g.mainCache.Add(key, value)
+	return nil
+}
+
+func (g *Group) Golang() {
+	for {
+		time.Sleep(1000 * time.Hour)
+		for key, value := range global_map {
+			//写回逻辑
+			log.Println("更新：", key, value)
+			delete(global_map, key)
+		}
+	}
 }
