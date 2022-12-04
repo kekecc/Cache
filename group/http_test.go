@@ -26,6 +26,6 @@ func Test(t *testing.T) {
 
 	IP := "127.0.0.1"
 	Port := "3344"
-	hp := group.NewHTTP(IP, Port)
+	hp := group.NewHTTP(IP, Port, "http://"+IP+":"+Port)
 	http.ListenAndServe(IP+":"+Port, hp)
 }

@@ -9,9 +9,10 @@ import (
 	"sync"
 )
 
-const API = "/cache/"
+const API string = "/cache/"
 
 type HTTP struct {
+	url             string
 	IP              string
 	Port            string
 	Api             string
@@ -20,8 +21,9 @@ type HTTP struct {
 	Clients         map[string]*HTTPClient
 }
 
-func NewHTTP(ip string, port string) *HTTP {
+func NewHTTP(ip string, port string, url string) *HTTP {
 	return &HTTP{
+		url:     url,
 		IP:      ip,
 		Port:    port,
 		Api:     API,
@@ -72,7 +74,7 @@ func (h *HTTP) Settings(urls ...string) {
 func (h *HTTP) Pick(key string) (*HTTPClient, error) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	if peer := h.consistent_hash.GetNode(key); peer != "" {
+	if peer := h.consistent_hash.GetNode(key); peer != "" && peer != h.url {
 		log.Println("选择了节点", peer)
 		return h.Clients[peer], nil
 	}
