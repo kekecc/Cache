@@ -8,15 +8,15 @@ import (
 
 type HashFunc func([]byte) uint32
 
-type consistentHash struct {
+type ConsistentHash struct {
 	hashFunc   HashFunc
 	virtualNum int
 	keys       []int
 	hashMap    map[int]string
 }
 
-func NewHash(num int, hashFunc HashFunc) *consistentHash {
-	ch := &consistentHash{
+func NewHash(num int, hashFunc HashFunc) *ConsistentHash {
+	ch := &ConsistentHash{
 		hashFunc:   hashFunc,
 		virtualNum: num,
 		hashMap:    make(map[int]string),
@@ -27,11 +27,11 @@ func NewHash(num int, hashFunc HashFunc) *consistentHash {
 	return ch
 }
 
-func (c *consistentHash) IsEmpty() bool { //if any items available
+func (c *ConsistentHash) IsEmpty() bool { //if any items available
 	return len(c.keys) == 0
 }
 
-func (c *consistentHash) AddKey(keys ...string) {
+func (c *ConsistentHash) AddKey(keys ...string) {
 	for _, key := range keys {
 		for i := 0; i < c.virtualNum; i++ {
 			num := int(c.hashFunc([]byte(strconv.Itoa(i) + key)))
@@ -44,7 +44,7 @@ func (c *consistentHash) AddKey(keys ...string) {
 }
 
 // 选择节点
-func (c *consistentHash) GetNode(key string) string {
+func (c *ConsistentHash) GetNode(key string) string {
 	if c.IsEmpty() {
 		return ""
 	}

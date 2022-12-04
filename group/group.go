@@ -20,6 +20,7 @@ type Group struct {
 	name      string
 	call_back CallBack //注册回调函数
 	mainCache Cache
+	route     *HTTP
 }
 
 var (
@@ -71,7 +72,22 @@ func Copy(b []byte) []byte {
 	return temp
 }
 
+func (g *Group) RegisterRoute(route *HTTP) {
+	if g.route != nil {
+		panic("group已经注册路由")
+	}
+	g.route = route
+}
+
 func (g *Group) GetFromAnother(key string) (Byte, error) {
+	if g.route != nil {
+		if peer, err := g.route.Pick(key); err != nil { //获取对应的客户端
+			if bytes, err := peer.Get(g.name, key); err == nil {
+				return Byte{data: bytes}, nil
+			}
+			log.Println("远程节点不存在该数据")
+		}
+	}
 	return g.FromLocal(key)
 }
 
@@ -81,11 +97,11 @@ func (g *Group) FromLocal(key string) (Byte, error) {
 		return Byte{}, err
 	}
 	value := Byte{data: Copy(bytes)}
-	g.mainCache.Add(key, value)
+	g.mainCache.Add(key, value) //添加
 	return value, nil
 }
 
-func GetFormGroupName(name string) *Group {
+func GetFromGroupName(name string) *Group {
 	//map不是并发安全的
 	mutex.RLock()
 	g := groups[name]

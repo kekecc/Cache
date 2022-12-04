@@ -1,8 +1,7 @@
-package myhttp_test
+package group_test
 
 import (
 	"MyCache/group"
-	"MyCache/myhttp"
 	"errors"
 	"log"
 	"net/http"
@@ -27,6 +26,6 @@ func Test(t *testing.T) {
 
 	IP := "127.0.0.1"
 	Port := "3344"
-	hp := myhttp.NewHTTP(IP, Port)
+	hp := group.NewHTTP(IP, Port)
 	http.ListenAndServe(IP+":"+Port, hp)
 }
